@@ -23,6 +23,11 @@ runtimeとライセンスを再生成し、差分を確認します。
 版数の変更には `npm version <version> --no-git-tag-version` を使えます。
 リリースタグは `v<version>` です。
 
+GitHubでReleaseを公開すると、`Build and Upload Daybook ZIP` がタグのソースから
+ZIPを作り、展開してCLIを検査してからReleaseに添付します。公開済みReleaseに
+ZIPを追加する場合は、既定ブランチ `devel` の Actions でこのWorkflowを選び、
+`Run workflow` の `tag_name` に既存タグ（例 `v0.1.0`）を入力します。
+
 `npm run build:bundle:zip` は、システムの `zip` を使って
 `bundle/igapyon-miku-daybook-skills-<version>.zip` を生成します。
 検査するときは別のディレクトリへ展開し、
