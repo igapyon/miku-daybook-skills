@@ -1,0 +1,59 @@
+name: Daybook runtime contract
+
+on:
+  pull_request:
+  push:
+    branches: [devel]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  runtime:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [22, 24]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Run Node.js-only daybook checks
+        run: npm run test:daybook
+
+  generated-runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+
+      - name: Install runtime generation dependencies
+        run: npm ci
+
+      - name: Check generated YAML runtime
+        run: npm run check:daybook-yaml-runtime
+
+      - name: Check YAML compatibility
+        run: npm run test:daybook-yaml-compatibility
+
+      - name: Build standalone ZIP
+        run: npm run build:bundle:zip
+
+      - name: Check CLI in the extracted ZIP
+        run: |
+          extracted=$(mktemp -d)
+          trap 'rm -rf "$extracted"' EXIT
+          unzip -q bundle/igapyon-miku-daybook-skills-*.zip -d "$extracted"
+          node scripts/check-daybook-runtime.mjs "$extracted/skills/igapyon-miku-daybook/assets/daybook"

@@ -1,0 +1,22 @@
+{
+  "name": "miku-daybook-skills",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "npm run test:daybook",
+    "test:daybook": "node --test skills/igapyon-miku-daybook/assets/daybook/scripts/*.test.mjs scripts/daybook-runtime.test.mjs",
+    "build:daybook-yaml-runtime": "node scripts/build-daybook-yaml-runtime.mjs",
+    "check:daybook-yaml-runtime": "node scripts/build-daybook-yaml-runtime.mjs --check",
+    "test:daybook-yaml-compatibility": "node --test scripts/daybook-yaml-compatibility.test.mjs",
+    "build:bundle:zip": "node scripts/build-skill-bundle-zip.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "yaml": "2.9.1"
+  }
+}
