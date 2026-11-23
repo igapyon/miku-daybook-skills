@@ -6,7 +6,8 @@
 
 ## 導入
 
-配布ZIPを展開し、`skills/igapyon-miku-daybook/` ディレクトリ全体を
+[GitHub Releases](https://github.com/igapyon/miku-daybook-skills/releases) で配布ZIPを取得して展開し、
+`skills/igapyon-miku-daybook/` ディレクトリ全体を
 `~/.codex/skills/` など、利用するエージェントのスキル配置先にコピーします。
 ソースから使う場合も同じディレクトリをコピーします。CLIは Node.js と
 同梱ファイルで動作します。GitHub Issue を取り込む場合は、対応する `igapyon-miku-scm`
