@@ -39,3 +39,14 @@ AIはそれらと未完了の `todo` を見て、最初の一歩を提案しま�
 
 ライセンスは [Apache-2.0](LICENSE) です。同梱 YAML runtime には
 [ISC ライセンス](skills/igapyon-miku-daybook/assets/daybook/scripts/vendor/yaml.LICENSE) が適用されます。
+
+## このリポジトリに daybook の記録を作らない
+
+このリポジトリは `igapyon-miku-daybook` スキルのソースと配布物を管理する場所であり、daybook の記録先ではありません。
+`activity`、`task`、`todo`、`topic` などの日々の記録は、別の daybook データリポジトリに保存してください。
+ソースと記録を混在させると管理対象が分かりにくくなるため、このリポジトリには daybook の記録を作らないでください。
+
+保存先として利用者が指定した、または利用者と確認済みの daybook があれば、そこに保存します。
+保存先が決まっていない場合、推定の候補は作業リポジトリと同じ親ディレクトリにある `daybook` と、`project-daybook` のように名前が `-daybook` で終わる姉妹ディレクトリに限ります。
+README や既存の記録を確認し、利用する daybook を一意に特定できた場合は、そこに保存します。
+候補から保存先を特定できない場合や、候補の範囲外を検討する場合は、書き込む前に利用者に確認してください。
