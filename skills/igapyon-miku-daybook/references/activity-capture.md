@@ -34,7 +34,18 @@ Use prior records as evidence of what was recorded at that time, with the curren
 
 ## Find and resume earlier work
 
-For “11月20日の activity を一覧にして” or “日付の扱いを調査していた続きをやって”, use the daybook's matching [activity-history.mjs](../assets/daybook/scripts/activity-history.mjs) or run the bundled script by absolute path with `--repo-root`. Follow the skill's target README and Git checks. Use the current request, known paths, dates, names, and purpose to select relevant work, including legacy records. Use these options as needed:
+When the user asks about earlier or current work or asks to resume, resolve the target daybook and follow the skill's README and Git checks. Use the current request and any known paths, dates, names, and purpose to select relevant work, including legacy records.
+
+When there is no date or subject to narrow the activity search, use filenames in the current and legacy layouts to find which days have records. Start with the newest represented day. Use `list --date` for that day and read the entries relevant to the request. Follow relevant links or move to earlier days with records until there is enough evidence to answer. This works across gaps such as holidays without a fixed lookback window. When an entry is a recap, follow its references or search by subject and date for the activity that records the actual work. For example, if Monday recaps Friday's successful reproduction of a bug, use Friday's result to identify the next diagnostic step. Count any new actions documented on Monday as progress in their own right.
+
+| User request | What to establish and report |
+| --- | --- |
+| “いままでの流れを把握して” | Summarize the relevant recent topics, attempts, decisions, and open work from activities. Check the current state of any related tasks used in the answer. |
+| “前回どこまで進んだ？” | Show the last work actually performed, what remained at that point, and the next supported step, with links to the relevant records. Mark gaps in the evidence. |
+| “実施中のものは？” | Check task front matter across all current and legacy task directories for `status: in_progress`, regardless of creation date or planning state. Include work whose continuation is recorded only in recent activities, with links. |
+| “続きをやろう” or “再開したい” | Identify the supported stopping point and the next action. When the target is clear and the request calls for action, carry on from that point. When multiple plausible candidates would lead to different work, show each with its next action and ask which to continue. |
+
+Use the daybook's matching [activity-history.mjs](../assets/daybook/scripts/activity-history.mjs) or run the bundled script by absolute path with `--repo-root`. Use these options as needed:
 
 ```sh
 node scripts/activity-history.mjs list --date 2026-11-20
@@ -42,7 +53,7 @@ node scripts/activity-history.mjs list --from 2026-11-19 --to 2026-11-20 --query
 node scripts/activity-history.mjs trace --path activities/2026/202611/20261120/activity-20261120aaa.md --depth 5
 ```
 
-`list` returns JSON `records` with `date`, `title`, and daybook-relative `path`. When given dates, it limits discovery and validation to that scope. Dates include both range endpoints. Either endpoint can stand alone. The optional `--query` uses a case-sensitive literal match in the title or body, including URLs. Show lists with dates, titles, and links. In an ambiguous case, compare the relevant candidates and ask which to continue only when the choice would change the work.
+`list` returns JSON `records` with `date`, `title`, and daybook-relative `path`. When given dates, it limits discovery and validation to that scope. Dates include both range endpoints. Either endpoint can stand alone. The optional `--query` uses a case-sensitive literal match in the title or body, including URLs. Show lists with dates, titles, and links.
 
 Use `trace` on the selected activity. It follows up to five previous links by default, or the requested depth. It returns the ancestor-first `records` and a `stop` with `at` and `reason`. Read the appropriate files in that order and reconstruct attempts, corrections, decisions, results and remaining steps. At `no_previous` or `depth_limit`, use the returned scope. If the CLI exits with a partial JSON result, report where the link failed, use the verified records, and search by subject or date for any essential missing context. Only the dedicated previous link establishes lineage. A filename suffix indicates allocation order. A legacy daily file can cover several unrelated topics.
 
