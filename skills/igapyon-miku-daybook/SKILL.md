@@ -45,7 +45,7 @@ The current user's instructions take precedence over earlier conversation and re
 
 After activation, a user-provided URL or a substantive discussion is eligible for activity capture even without an explicit recording command. Use the current mode below to decide when to save. Reading this skill for a meta task does not itself establish active daybook use. An ordinary end-of-work or pause signal triggers the final checkpoint below. A request to stop recording or a restriction on file changes takes effect as stated and suppresses any disallowed save. Leave an excluded interval out of later saves unless the user explicitly requests its material.
 
-For an activity list, history question, or request to resume daybook-managed work, follow [Find and resume earlier work](references/activity-capture.md#find-and-resume-earlier-work). Use the date and subject to find the entry, then follow its previous links as needed. A history question calls for lookup and explanation. If the user names a [legacy waypoint](references/waypoints.md), read it for resumption context.
+For an activity list, history question, current-work question, or request to resume daybook-managed work, follow [Find and resume earlier work](references/activity-capture.md#find-and-resume-earlier-work). After activation, “前回どこまで？” and “再開したい” are enough to start looking up work. When the conversation supplies no date or subject, begin with the newest date that has activity records. If the user names a [legacy waypoint](references/waypoints.md), read it for resumption context.
 
 Once an operation is known, read only the records and supporting material needed for it. Use scoped filename or content searches to locate unknown records rather than loading the repository's records in advance.
 
