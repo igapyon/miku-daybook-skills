@@ -16,7 +16,7 @@ Use this procedure only when the user explicitly asks to import one or more GitH
 
 Run this preparation only after an explicit Issue-intake request. Other daybook operations do not need the Issue-intake scripts. New activity creation uses its own CLI; see [operations.md](operations.md#add-an-activity).
 
-Start at the target daybook repository root. Read its `README.md`, check its Git status, and inspect its `scripts/`. Confirm Node.js is available with `node --version`. Do not assume that the installed skill directory and target repository are the same location. The bundled CLI runtime needs no package manifest, lockfile, installed dependency, or package-manager command.
+Follow the [required checks for a concrete operation](../SKILL.md#required-checks-for-a-concrete-operation) to locate the daybook. Use a Git-managed daybook for Issue intake because task ID allocation reads local Git history. Start at the selected root and inspect its `scripts/`. Confirm Node.js is available with `node --version`. The bundled CLI runtime needs no package manifest, lockfile, installed dependency, or package-manager command.
 
 The source bundle is the `assets/daybook/` directory next to the `SKILL.md` that was actually loaded for this request. Use that directory as the source for the bundled files below. The bundled notification workflow currently uses Node.js 24; this intake procedure does not introduce a new minimum Node version.
 
@@ -182,9 +182,9 @@ node scripts/import-issues.mjs prepare \
 
 Review `preview.md` and `plan.json` before apply. Confirm every Issue outcome; each record kind, path, task ID, planning state, due/work-period distinction, and date evidence; every planned `provisional` range and reason; that Backlog records have not received invented dates; duplicate or linked record decisions; each activity file and its allocated suffix; and the complete comment body including its statement that records are local and the later close only completes intake. Daily Briefing #3 must be `excluded`. `needs-info`, `skip`, already-imported, remote-only, and excluded outcomes must have no write and must not receive an import comment.
 
-`prepare` reserves names across all pending activity writes and considers existing files and local Git history. Old unsuffixed and new suffixed files are both scanned for Issue provenance. Old saved plan/result paths remain valid on apply/resume. If a new target appears after review, apply stops with `LOCAL_CONFLICT`; prepare and review a new plan rather than renaming during apply.
+`prepare` reserves names across all pending activity writes and considers existing files and local Git history. Old unsuffixed and new suffixed files are both scanned for Issue provenance. Old saved plan/result paths remain valid on apply/resume. If a new target appears after review or an unapplied task ID has since been reserved, apply stops with `LOCAL_CONFLICT`. Prepare and review a new plan.
 
-`prepare` only writes run artifacts; it must not change canonical daybook records. The task sequence comes from current files and local Git history without fetching. The plan stores the complete intended writes and before/after hashes. Do not hand-edit the plan. A changed plan fails its digest check.
+`prepare` only writes run artifacts; it must not change canonical daybook records. The task sequence comes from current files, local Git history without fetching, and any existing `task-ids/` reservations. The plan stores the complete intended writes and before/after hashes. Do not hand-edit the plan. A changed plan fails its digest check.
 
 ## 6. Refresh evidence and apply locally
 

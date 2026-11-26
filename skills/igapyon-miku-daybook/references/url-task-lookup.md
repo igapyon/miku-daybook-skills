@@ -13,7 +13,7 @@ Examples:
 
 ## Read the source and find candidates
 
-1. Follow the skill's first checks for the target daybook: identify the repository, read its `README.md`, and inspect Git status. Keep the search within the user's requested daybook; do not switch repositories based on a guess.
+1. Follow the [required checks for a concrete operation](../SKILL.md#required-checks-for-a-concrete-operation). Keep the search within the resolved daybook.
 2. Use [URL receipt and reading](activity-capture.md#receive-and-read-a-url) and the content actually available for this occasion. Prefer a suitable connected reader when available; reuse content already read rather than fetching it again for the lookup. Extract the subject, entities, dates, identifiers, and work described that can be compared with tasks. A page title or search result alone does not establish that the page was read. Do not download or save the page or install dependencies just to perform this lookup.
 3. Search task files under every current `tasks/YYYY/YYYYMM/YYYYMMDD/task-*.md` and legacy `YYYY/YYYYMM/tasks/task-*.md` directory. Search for the exact URL and identifiers first, then use specific names, dates, and work described in the page to find possible matches. Read candidate task files and compare their purpose, subject, dates, state, and next actions with the source.
 4. Distinguish a URL already present in a task's source or related-material section from a relationship inferred from the page content. A shared general term, venue, or domain alone is weak evidence. An unrecorded URL may still be related to a task when the content supports the connection.

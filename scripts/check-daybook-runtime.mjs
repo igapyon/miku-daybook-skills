@@ -65,6 +65,7 @@ function runHelpChecks({ nodeExecutable, scriptsDirectory, cwd, env }) {
     ["create-activity.mjs", "--help"],
     ["update-activity.mjs", "--help"],
     ["activity-history.mjs", "--help"],
+    ["reserve-task-id.mjs", "--help"],
     ["generate-day-plan.mjs", "--help"],
     ["import-issues.mjs", "--help"],
     ["post-day-plan.mjs", "--help"],
@@ -108,9 +109,12 @@ function verifyActivityHistory({ nodeExecutable, scriptsDirectory, repoRoot, cwd
   const previous = "2026/202609/activities/activity-20260913.md";
   const oldRecord = "---\ntype: activity\ndate: 2026-09-13\n---\n\n# 旧形式の調査\n\n次は日付の扱いを確認。\n";
   const previousFile = writeRecord(repoRoot, previous, oldRecord);
+  const project = path.join(path.dirname(repoRoot), "Project A");
+  fs.mkdirSync(project);
+  const projectActivity = activity("調査の続き").replace(`date: ${DATE}\n`, `date: ${DATE}\nproject_root: "../Project A"\n`);
   const creation = runNode(nodeExecutable, path.join(scriptsDirectory, "create-activity.mjs"), [
     "--repo-root", repoRoot, "--date", DATE, "--previous", previous, "--stdin",
-  ], { cwd, input: activity("調査の続き"), env });
+  ], { cwd, input: projectActivity, env });
   expectSuccess(creation, "activity creation with previous link");
   const { path: child } = parseJsonOutput(creation, "activity creation with previous link");
   const cli = path.join(scriptsDirectory, "activity-history.mjs");
@@ -118,6 +122,23 @@ function verifyActivityHistory({ nodeExecutable, scriptsDirectory, repoRoot, cwd
   expectSuccess(list, "activity history list");
   const matches = parseJsonOutput(list, "activity history list").records;
   if (matches.length !== 1 || matches[0].path !== child) fail("activity history list did not isolate the selected work");
+
+  const otherProject = path.join(path.dirname(repoRoot), "Project B");
+  fs.mkdirSync(otherProject);
+  const otherActivity = "activities/2026/202609/20260914/activity-20260914zzz.md";
+  writeRecord(repoRoot, otherActivity, projectActivity.replace("../Project A", "../Project B"));
+  for (const [directory, expectedPath] of [[project, child], [otherProject, otherActivity]]) {
+    const scoped = runNode(nodeExecutable, cli, [
+      "list", "--repo-root", repoRoot, "--query", "調査", "--project-root", directory,
+    ], { cwd, env });
+    expectSuccess(scoped, "project activity history");
+    const { records } = parseJsonOutput(scoped, "project activity history");
+    if (records.length !== 1 || records[0].path !== expectedPath
+      || records[0].project_root !== `../${path.basename(directory)}`) {
+      fail("activity history did not distinguish the two project roots");
+    }
+  }
+
   const trace = runNode(nodeExecutable, cli, ["trace", "--repo-root", repoRoot, "--path", child], { cwd, env });
   expectSuccess(trace, "activity history trace");
   const { records, stop } = parseJsonOutput(trace, "activity history trace");
@@ -125,6 +146,30 @@ function verifyActivityHistory({ nodeExecutable, scriptsDirectory, repoRoot, cwd
     fail("activity history trace did not return the legacy parent before its child");
   }
   if (fs.readFileSync(previousFile, "utf8") !== oldRecord) fail("activity history changed the legacy record");
+}
+
+function verifyTaskIdReservations({ nodeExecutable, scriptsDirectory, repoRoot, cwd, env }) {
+  const cli = path.join(scriptsDirectory, "reserve-task-id.mjs");
+  const reserve = (...args) => {
+    const result = runNode(nodeExecutable, cli, ["--repo-root", repoRoot, ...args], { cwd, env });
+    expectSuccess(result, "task ID reservation");
+    return parseJsonOutput(result, "task ID reservation").id;
+  };
+
+  // The ID month still counts even when an older task was migrated to a different placement month.
+  writeRecord(repoRoot, "tasks/2026/202610/20261001/task-202609-00004-migrated.md", "# Migrated task\n");
+  if (reserve("--date", DATE) !== "task-202609-00005") fail("allocation missed a migrated task's ID month");
+  const preserved = "task-202609-00007";
+  reserve("--preserve", preserved);
+  reserve("--preserve", preserved);
+  const id = reserve("--date", DATE);
+  if (id !== "task-202609-00008") fail("allocation did not count previously used task IDs");
+
+  const task = writeRecord(repoRoot, `tasks/2026/202609/20260914/${id}-smoke.md`, "# New task\n");
+  fs.unlinkSync(task);
+  if (reserve("--date", DATE) !== "task-202609-00009") fail("allocation reused the deleted task's ID");
+  if (!fs.statSync(path.join(repoRoot, "task-ids", id)).isFile()) fail("the task ID reservation was lost");
+  if (reserve("--date", "2026-10-01") !== "task-202610-00001") fail("allocation crossed task ID months");
 }
 
 function createIssueFixtures(runDirectory) {
@@ -345,6 +390,9 @@ export function checkDaybookRuntime(bundleRoot, { nodeExecutable = process.execP
       || !noGitOutput.warnings?.some((warning) => warning.includes("local Git history is unavailable"))) {
       fail("activity creation without Git did not use current files and report the missing history");
     }
+    verifyTaskIdReservations({
+      nodeExecutable, scriptsDirectory: path.join(installRoot, "scripts"), repoRoot: noGitRepo, cwd, env: noGitEnvironment,
+    });
 
     const copiedCreate = create(copiedRepo, path.join(copiedRepo, "scripts"), "Copied bundle activity");
     expectSuccess(copiedCreate, "activity creation from copied scripts with an unrelated yaml package present");

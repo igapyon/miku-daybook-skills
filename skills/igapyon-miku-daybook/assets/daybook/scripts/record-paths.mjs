@@ -13,6 +13,7 @@ const RECORD_ROOTS = new Map([
   ["schedule", "schedules"],
   ["day-plan", "day-plans"],
 ]);
+export const TASK_ID_RESERVATIONS = "task-ids";
 
 export function validateIsoDate(value, label = "date") {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
@@ -212,6 +213,25 @@ function realDirectory(parent, name, relativePath) {
     if (error.code === "ENOENT") return null;
     throw error;
   }
+}
+
+export function highestReservedTaskSequence(repoRoot, month) {
+  const directory = path.join(repoRoot, TASK_ID_RESERVATIONS);
+  const info = fs.lstatSync(directory, { throwIfNoEntry: false });
+  if (!info) return 0;
+  if (!info.isDirectory()) throw new Error(`Task ID reservations must be in a real directory: ${directory}`);
+
+  const prefix = `task-${month}-`;
+  let highest = 0;
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    if (!entry.name.startsWith(prefix)) continue;
+    const number = entry.name.slice(prefix.length);
+    if (!entry.isFile() || !/^\d{5}$/.test(number) || number === "00000") {
+      throw new Error(`Invalid task ID reservation: ${entry.name}`);
+    }
+    highest = Math.max(highest, Number(number));
+  }
+  return highest;
 }
 
 function directoryEntries(directory, relativePath, includeName) {
