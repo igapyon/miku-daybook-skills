@@ -752,6 +752,32 @@ test("applying a stale plan rejects a task ID already applied at another path", 
   assert.ok(dayPlan.markdown.includes(freshTask.id));
 });
 
+test("apply rejects a newly reserved task ID before writing and can resume an existing task", async (t) => {
+  const root = makeRoot(t);
+  const input = source();
+  const decisions = manifest([{ number: 42, decision: "import", records: [taskRecord(), activityRecord()] }]);
+  const { plan } = prepare(root, input, decisions);
+  const task = plan.issues[0].records.find((record) => record.type === "task");
+  const reservations = path.join(root, "task-ids");
+  const resultPath = path.join(root, "workplace/issue-import/reserved-conflict/result.json");
+  fs.mkdirSync(reservations);
+  fs.writeFileSync(path.join(reservations, task.id), "");
+
+  await assert.rejects(applyIssueImport({ repoRoot: root, plan, refreshSource: input, resultPath }), {
+    code: "LOCAL_CONFLICT", details: { id: task.id, path: task.path },
+  });
+  assert.equal(fs.existsSync(resultPath), false);
+  for (const write of plan.writes) assert.equal(fs.existsSync(path.join(root, write.path)), false);
+
+  const { plan: freshPlan } = prepare(root, input, decisions);
+  const freshTask = freshPlan.issues[0].records.find((record) => record.type === "task");
+  assert.notEqual(freshTask.id, task.id);
+  await applyIssueImport({ repoRoot: root, plan: freshPlan, refreshSource: input, resultPath });
+  fs.writeFileSync(path.join(reservations, freshTask.id), "");
+  const resumed = await applyIssueImport({ repoRoot: root, plan: freshPlan, resultPath });
+  assert.equal(resumed.status, "local-written");
+});
+
 test("task ID preflight includes migrated tasks without Issue provenance", async (t) => {
   const root = makeRoot(t);
   const input = source();
@@ -925,12 +951,16 @@ test("source changes, edits, bad paths, and lock collisions stop before unsafe w
   await assert.rejects(applyIssueImport({ repoRoot: root, plan, refreshSource: source(), resultPath }), { code: "BUSY" });
 });
 
-test("task sequencing considers working files, deleted Git history, and ID exhaustion", (t) => {
+test("task sequencing considers working files, deleted Git history, reservations, and ID exhaustion", (t) => {
   const root = makeRoot(t);
   const tasks = path.join(root, "2026/202610/tasks");
   fs.mkdirSync(tasks, { recursive: true });
   fs.writeFileSync(path.join(tasks, "task-202610-00004-working.md"), "working\n");
   assert.equal(nextTaskSequence(root, "202610", { gitLog: () => "2026/202610/tasks/task-202610-00009-deleted.md\n" }), 10);
+  const reservations = path.join(root, "task-ids");
+  fs.mkdirSync(reservations);
+  fs.writeFileSync(path.join(reservations, "task-202610-00012"), "");
+  assert.equal(nextTaskSequence(root, "202610", { gitLog: () => "" }), 13);
   assert.throws(() => nextTaskSequence(root, "202610", { gitLog: () => "tasks/2026/202610/20261009/task-202610-99999-removed.md" }), { code: "ID_EXHAUSTED" });
   assert.throws(() => nextTaskSequence(root, "202610", { gitLog: () => { throw new Error("unavailable"); } }), { code: "ID_HISTORY_UNAVAILABLE" });
 });

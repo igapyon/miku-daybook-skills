@@ -1,6 +1,6 @@
 # Daybook record contract
 
-This reference defines the file and data rules for the `daybook` repository. Read it before creating or changing a record.
+This reference defines the file and data rules for daybook records. Read it before creating or changing a record.
 
 For when to capture conversations, URLs, and operation outcomes during active use, follow [activity-capture.md](activity-capture.md). The schemas and paths below also apply to these ordinary activity records.
 
@@ -8,7 +8,7 @@ Activities can stand alone for starting, continuing, and resuming work. Create t
 
 ## Directory and filename rules
 
-Dated records use type-first roots, then calendar folders. Topics live at the daybook root:
+Dated records use type-first roots, then calendar folders. This example shows the layout when both `attachments/` and `topics/` use the daybook root. Use [Choose the attachments and topics directories](operations.md#choose-the-attachments-and-topics-directories) to resolve them for the current work.
 
 ```text
 daybook/
@@ -30,7 +30,7 @@ daybook/
 Read and update existing records at their saved paths. During transition, the former `YYYY/YYYYMM/{activities,tasks,todos,schedules,day-plan,attachments}/` layout remains valid; do not rename a record or attachment as a side effect of ordinary work. The bundled record helpers read both record layouts. New records use the type-first paths above.
 
 - An activity belongs to the date on which it happened. New files go in `activities/YYYY/YYYYMM/YYYYMMDD/`. Create a separate file for each coherent event or work episode, with a lowercase letter suffix immediately after the date: `activity-YYYYMMDDaaa.md`, then `aab`, through `aaz`, then `aba`, and onward through `zzz`. The three-letter range covers 17,576 activities per date. On overflow, continue automatically with `aaaa`; likewise `zzzz` advances to `aaaaa`. There is no specification limit on suffix length. Restart at `aaa` for each activity date. Continue the same file for updates to that episode. Multiple episodes combined during concurrent work are acceptable; preserve all contributions.
-- Compare suffixes by length then alphabetically, rather than ordinary filename sorting. Allocate after the largest suffix found in current files, local Git history and pending writes, with a minimum new suffix of `aaa`; existing one- or two-letter suffixes do not continue the shorter sequence. Do not reuse gaps or deleted names. Use the bundled creation CLI and update CLI described in [operations.md](operations.md#add-an-activity). The suffix is an allocation sequence, not an event time. Keep front matter `type: activity` and `date`; the activity date must agree with the filename and month.
+- Compare suffixes by length then alphabetically, rather than ordinary filename sorting. Allocate after the largest suffix found in current files, available local Git history and pending writes, with a minimum new suffix of `aaa`; existing one- or two-letter suffixes do not continue the shorter sequence. Do not reuse gaps or known deleted names. Use the bundled creation CLI and update CLI described in [operations.md](operations.md#add-an-activity). The suffix is an allocation sequence, not an event time. Keep front matter `type: activity` and `date`; the activity date must agree with the filename and month.
 - Existing unsuffixed `activity-YYYYMMDD.md` files and files with one- or two-letter suffixes remain valid and may be updated for their existing episodes. Keep their names, links and attachment paths. New episodes use the sequence starting at `aaa`; an existing unsuffixed file does not consume a suffix. Do not bulk-split or rename old records.
 - Updating an activity follows [Edit activities over time](activity-capture.md#edit-activities-over-time), including same-day refinement, dated supplements/corrections to older accounts, and the overnight finishing exception. Keep its actual date and saved path.
 - A schedule belongs to the month in which the event occurs: `schedules/YYYY/YYYYMM/`. Keep one file per independent event and separate unrelated events on the same day.
@@ -39,15 +39,15 @@ Read and update existing records at their saved paths. During transition, the fo
 - For an existing task with no known `created` date, an explicitly requested layout migration may use its valid start date (`planned_start_date`, or legacy `planned_date`) as the placement date. Keep its existing task ID and leave `created` absent. The placement day and task ID month may differ. Record the choice in the migration mapping and task history. Once placed, keep the task path stable when planned dates or state change.
 - Keep a task at its saved path when it becomes `done` or `cancelled`; update its status in place and do not move it to an archive or closed folder.
 - A day-plan belongs to the target date's month at `day-plans/YYYY/YYYYMM/` and is a generated snapshot.
-- Topics live under root `topics/`, outside the year/month hierarchy. Use a short descriptive lowercase English filename with hyphens and `.md`, directly in that directory or a useful subdirectory. Their creation/update dates do not determine their location. Keep saved paths stable and represent other relationships with links; see [topics.md](topics.md) for scope, content, metadata, and optional organization.
-- Choose record text, an external reference, or an in-repository attachment using [attachments.md](attachments.md). Reuse an existing attachment's saved path first. New attachments use `attachments/YYYY/YYYYMM/<record-id>/` at the month when the material arose; prefer an existing task's ID only when its purpose or work products clearly relate to it, otherwise use the activity's actual filename stem. Do not create a task merely to store an attachment. An attachment's parent month may differ from the month in its task-id; task creation-date checks below apply to task records, not attachment folders. Keep existing attachment paths when updating or referencing them, including when a task is later created or linked. Follow [attachments.md](attachments.md) for task-only and schedule-only placement, content selection, temporary files, and binary exceptions. Create directories only when needed.
+- Topics live under the selected topics directory, usually `topics/` outside the year and month hierarchy. Use a short descriptive lowercase English filename with hyphens and `.md`, directly in that directory or a useful subdirectory. Their creation and update dates do not determine their location. Keep saved paths stable and represent other relationships with links. See [topics.md](topics.md) for scope, content, metadata, and optional organization.
+- Choose record text, an external reference, or an in-repository attachment using [attachments.md](attachments.md). Reuse an existing attachment's saved path first. New attachments use `YYYY/YYYYMM/<record-id>/` under the selected attachments directory, using the month when the material arose. Prefer an existing task's ID only when its purpose or work products clearly relate to it. Otherwise use the activity's actual filename stem. Do not create a task merely to store an attachment. An attachment's parent month may differ from the month in its task-id; task creation-date checks below apply to task records, not attachment folders. Keep existing attachment paths when updating or referencing them, including when a task is later created or linked. Follow [attachments.md](attachments.md) for task-only and schedule-only placement, content selection, temporary files, and binary exceptions. Create directories only when needed.
 - Use lowercase English prefixes. Todos, tasks, and schedules use a short English name suffix; activities use the letter sequence above. Preserve an existing filename and ID when updating its title or deadline.
 
 ## Task IDs and status
 
 `task-id` (task ID) is the task's persistent identifier, stored in front matter as `id`, in `task-YYYYMM-NNNNN` format. For example, `task-202610-00014` is the task-id of `task-202610-00014-prepare-materials.md`; the corresponding attachment folder is `attachments/YYYY/YYYYMM/task-202610-00014/`. Keep the YAML field name as `id`.
 
-`NNNNN` is a five-digit sequence within the creation month. Inspect current files in every date folder and Git history before assigning the next number. Never reuse a deleted number or close a gap. A filename's ID, front matter `id`, and displayed ID must agree. For new tasks, the directory date, ID month, and `created` must agree. Existing legacy tasks remain readable; for an existing task in the new layout, a supplied `created` must match its day directory and ID month. A migrated task with no `created` keeps its saved placement date even if its ID month differs from the placement month; do not infer a created date from its start date.
+`NNNNN` is a five-digit sequence within the creation month. Allocate IDs under [Add a task](operations.md#add-a-task). Count tasks by ID month even when a migrated task is stored under another month. Keep any `task-ids/task-YYYYMM-NNNNN` reservations with the daybook after deleting task files. A filename's ID, front matter `id`, and displayed ID must agree. For new tasks, the directory date, ID month, and `created` must agree. Existing legacy tasks remain readable; for an existing task in the new layout, a supplied `created` must match its day directory and ID month. A migrated task with no `created` keeps its saved placement date even if its ID month differs from the placement month; do not infer a created date from its start date.
 
 Use these statuses:
 
@@ -117,7 +117,7 @@ recurrence: weekly
 next_occurrence: 2026-10-04
 ```
 
-The minimum front matter for the other records is:
+## Activity front matter
 
 ```yaml
 ---
@@ -125,6 +125,10 @@ type: activity
 date: YYYY-MM-DD
 ---
 ```
+
+An activity may also have a `project_root` string. Record it for a new activity when the work's project root is known. Compute it from the resolved daybook root and project root on disk. Use a normalized relative path with `/` separators, such as `project_root: "../ProjectName"`. Use `"."` when both roots coincide, or an absolute path with `/` separators if they are on different volumes. Earlier records may omit the field. See [Find and resume earlier work](activity-capture.md#find-and-resume-earlier-work) for how it is used.
+
+## Schedule and day-plan front matter
 
 ```yaml
 ---
@@ -165,9 +169,11 @@ When a new activity continues a known previous activity, it may contain one dedi
 
 Use the [creation CLI](operations.md#add-an-activity) to insert this link. The previous activity remains at its saved path. The link is optional and can point across current and legacy layouts. Use ordinary Markdown links for materials or related activities outside this chain.
 
-Use relative links between records and to retained text files under `attachments/`, including links across months, and check that each target exists after edits. Keep supplied source URLs for event pages and emails. If multiple records use the same supporting file, reference one canonical copy at its saved path; use [attachments.md](attachments.md) when choosing a new attachment location. Prefer stable references to originals and retained results managed outside daybook, including another Git repository; never use a temporary-file path as a permanent link. References to other work repositories belong on the daybook side; do not add references back to daybook in those repositories. Treat the original task and schedule as authoritative; a day-plan is a snapshot and should not become a second source of truth.
+Use relative links for records and retained text files within the same root, including links across months. Check that each target exists after edits. Keep supplied source URLs for event pages and emails. If multiple records use the same supporting file, reference one canonical copy at its saved path; use [attachments.md](attachments.md) when choosing a new attachment location. Prefer stable references to originals and retained results managed outside daybook, including another Git repository; never use a temporary-file path as a permanent link. Treat the original task and schedule as authoritative; a day-plan is a snapshot and should not become a second source of truth.
 
-For a topic's current understanding and specifications, use the topic and its designated sources; for work state and completion conditions, use the task. A task retains a short actionable conclusion and links to topic detail. Topics link to their source activities, which retain the dated attempts, observations, and corrections. Creating a topic does not move source activities or attachments, edit unrelated tasks, or add backlinks to older activities.
+When the project root and daybook root are separate directories, keep references between them on the daybook side. Use a daybook record to point to a project file, topic, or result. Keep links, filesystem paths, URLs, and resume pointers to the daybook root or its records out of project files and repository-facing text. This applies to Markdown and other project files regardless of whether either directory is managed by Git.
+
+For a topic's current understanding and specifications, use the topic and its designated sources; for work state and completion conditions, use the task. A task retains a short actionable conclusion and links to topic detail. Source activities retain the dated attempts, observations, and corrections. Connect them to the topic using the [topic source link rules](topics.md#content-and-dates). Creating a topic does not move source activities or attachments, edit unrelated tasks, or add backlinks to older activities.
 
 When a task has implementation milestones or a firm external deadline in addition to its planned work period, label each date's meaning in the body and preserve the source. Do not silently reinterpret a `planned_end_date` as a firm external deadline.
 

@@ -9,10 +9,12 @@ import { DEFAULT_TASK_PRIORITY, parseFrontMatter, todayInTokyo, validateIsoDate 
 import { nextActivityPath, updateActivity, validateActivityRecord } from "./activity-files.mjs";
 import {
   assertUniqueRecordPaths,
+  highestReservedTaskSequence,
   listCanonicalRecordFiles,
   parseRecordPath,
   schedulePath,
   taskPath,
+  TASK_ID_RESERVATIONS,
 } from "./record-paths.mjs";
 
 export const ISSUE_IMPORT_SCHEMA_VERSION = 1;
@@ -847,7 +849,7 @@ export function nextTaskSequence(repoRoot, month, dependencies = {}) {
       if (match) used.add(Number(match[1]));
     } catch { /* History lines outside canonical task paths do not reserve task IDs. */ }
   }
-  const maximum = used.size ? Math.max(...used) : 0;
+  const maximum = Math.max(highestReservedTaskSequence(repoRoot, month), ...used);
   if (maximum >= 99999) fail("ID_EXHAUSTED", "No task IDs remain in this month", { month });
   return maximum + 1;
 }
@@ -1656,6 +1658,11 @@ function verifyCurrentIssueSources(repoRoot, plan) {
     if (otherPath && otherPath !== write.path) {
       fail("SOURCE_CONFLICT", `Task ID ${record.id} is assigned to two paths: ${otherPath}, ${write.path}`, {
         id: record.id, paths: [otherPath, write.path],
+      });
+    }
+    if (!otherPath && write.before_hash === null && fs.existsSync(path.join(repoRoot, TASK_ID_RESERVATIONS, record.id))) {
+      fail("LOCAL_CONFLICT", `Task ID ${record.id} was reserved after prepare. Prepare a new plan.`, {
+        id: record.id, path: write.path,
       });
     }
     index.taskPathsById.set(record.id, write.path);

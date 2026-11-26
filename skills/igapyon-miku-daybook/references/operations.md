@@ -24,14 +24,14 @@ This division is implemented through the Agent's Markdown editing instructions a
 
 When synthesizing activities into a topic, or into a new or existing task explicitly requested by the user, use either of these strategies:
 
-- **Conclusion-focused:** organize the current supported understanding, adopted approach, results, and unresolved issues, adding next actions when relevant to the record's role. Link to activities for the detailed history.
+- **Conclusion-focused:** organize the current supported understanding, adopted approach, results, and unresolved issues, adding next actions when relevant to the record's role.
 - **With decision history:** also include the selected alternatives, attempts, abandoned approaches and their reasons, mistakes, and corrections needed to understand the conclusions. Keep their meaningful sequence and distinguish a rejected proposal from an observed failure or factual correction. This selected history belongs in the requested summary record as well as its source activities; a full transcript or execution log is not required.
 
 For topics, keep thematic knowledge and specifications here; for tasks, focus on the particular job and link to any topic for detail. An explicit choice to retain selected decision history in a task remains valid. Follow clear user instructions or an established preference without asking again. If the intended strategy is unclear, ask before drafting or rewriting the summary record. For a task, for example:
 
 > 今回の task は、結論を中心にまとめますか。それとも、廃案や訂正を含む判断の経緯も本文に残しますか？
 
-Use the same choice with “topic” for a topic consolidation. Wait for the choice before writing the summary record; relevant source reading and independently requested work or activity capture can continue. Both strategies retain source links and keep the current conclusion easy to locate. Ordinary task status/date edits and focused topic corrections do not require this question.
+Use the same choice with “topic” for a topic consolidation. Wait for the choice before writing the summary record; relevant source reading and independently requested work or activity capture can continue. In either strategy, keep the current conclusion easy to locate and follow the [relationship rules](records.md#relationship-rules). A task or a topic saved at the daybook root can link directly to its source activities. For a topic at a separate project root, keep the links to the topic and its sources together on the daybook side under [Create or update](topics.md#create-or-update). Ordinary task status/date edits and focused topic corrections do not require this question.
 
 ## Task completion and scope
 
@@ -60,6 +60,32 @@ Reading a task, recording an activity, or proposing an approach alone does not e
 
 When both activity and task are in scope, save the activity first and then consolidate the current state into the task. If the task write fails after the activity succeeds, report that the history is saved and the task update is incomplete. Do not claim that the two-file update is atomic.
 
+## Resolve the project root and daybook root
+
+Resolve the roots when the first concrete operation needs them. The launch root is the Git top level that contains the launch directory. Outside Git, use the workspace root provided by the environment, or the launch directory if no workspace root is given. Use the launch root's local directory name for the rules below.
+
+An explicit user choice takes precedence for each root. Reuse a daybook root confirmed for the current scope. When continuing work, use its established project root from the conversation or relevant records. Fill any remaining defaults from the launch root and its siblings under the same parent directory.
+
+1. A launch root named exactly `daybook` is both the project root and the daybook root by default.
+2. A launch root named `ProjectName-daybook` with an existing `ProjectName` sibling is the daybook root. The sibling `ProjectName` is the project root. Match the project name by removing the final `-daybook` suffix.
+3. A launch root named `ProjectName` is the project root. Use the exact sibling `ProjectName-daybook` as the daybook root if present. If that directory is absent, use the exact sibling `daybook` when present.
+
+Use existing directories for these defaults. If a required root remains unresolved, ask only for the path needed to proceed. If the selected daybook root's instructions exclude daybook records, follow those instructions and resolve a permitted root before writing.
+
+Keep the selected daybook root when moving between directories for the same work. Store activities, tasks, todos, schedules, and day-plans at the daybook root. Follow the project root's instructions when working there.
+
+## Choose the attachments and topics directories
+
+For a lookup without a known path or a new file, apply the first matching rule in order. Choose independently for `attachments` and `topics`.
+
+1. Use the location the user explicitly specifies for that type.
+2. Otherwise use `attachments/` or `topics/` directly under the project root when the corresponding directory already exists.
+3. If the user specified no location and no directory of that name exists directly under the project root, use the corresponding directory under the daybook root. Create directories only as needed for an authorized write.
+
+For a specific existing attachment or topic identified by a path, a link, or the current work context, use its saved path for reading and updates. Move it only when the user requests relocation. If the two roots match, the corresponding directory is the same location.
+
+Before editing under a separate project root, follow its local instructions and check its Git status if it is managed by Git. Use the [relationship rules](records.md#relationship-rules) for references between the two roots. A topic under the project root can cite project material or external sources. Connect it to an activity or task from the daybook side.
+
 ## Reuse completed setup checks
 
 Reuse a completed setup check only when its result is known, still applies to the same absolute daybook root and operation, and remains in the current conversation context. Reuse reduces repeated preparation; it never replaces a fresh read of a record being edited or its update hash.
@@ -68,7 +94,7 @@ Reuse a completed setup check only when its result is known, still applies to th
 | --- | --- | --- |
 | Target README and operation references | The read content and its applicability to the same root and operation are clear | The daybook root changes, rules may have changed, context is unclear, or a new operation needs an unread reference |
 | CLI and bundled-module match | The loaded skill location, executable CLI path, and companion modules are known to match | The CLI or skill version/path changes, a relevant file changed, loading failed, or the evidence is no longer available |
-| Git status | In the same response, for a continuous group of edits after a known status check | Before editing in a later response, after changing roots, or when the worktree state becomes uncertain |
+| Git status for a Git-managed daybook | In the same response, for a continuous group of edits after a known status check | Before editing in a later response, after changing roots, or when the worktree state becomes uncertain |
 | Existing record content and update hash | Never reuse as the basis for another activity update | Read the current activity and SHA-256 through the update CLI for each update; reread task, topic, or schedule content before editing it |
 | Post-save validation | For the latest result of the same edit group | After another edit, a conflict, or any save/validation error |
 
@@ -78,13 +104,25 @@ When unsure whether a check remains valid, repeat only the relevant check. Do no
 
 Use this procedure for a requested task registration or consolidation of activities into a task. An instruction to perform small work or continue an activity alone does not request task registration.
 
-1. Search all current `tasks/YYYY/YYYYMM/YYYYMMDD/task-*.md` and legacy `YYYY/YYYYMM/tasks/task-*.md` files, plus recent Git history, for the intended task or its ID.
-2. For the requested action or consolidation, use today's or the explicitly chosen Asia/Tokyo creation date for placement at `tasks/YYYY/YYYYMM/YYYYMMDD/`. Assign the next unused five-digit number for that creation month across all its day folders. Earlier supporting activities keep their actual dates. Do not reuse a deleted number or close a gap.
+1. Search all current `tasks/YYYY/YYYYMM/YYYYMMDD/task-*.md` and legacy `YYYY/YYYYMM/tasks/task-*.md` files for the intended task or its ID. Include recent Git history for a Git-managed daybook.
+2. For the requested action or consolidation, use today's or the explicitly chosen Asia/Tokyo creation date for placement at `tasks/YYYY/YYYYMM/YYYYMMDD/`. For a Git-managed daybook, allocate after the largest number for the ID month found in the current and legacy layouts, local Git history, and any existing `task-ids/` reservations. For a daybook outside Git, follow [Reserve a task ID outside Git](#reserve-a-task-id-outside-git). Earlier supporting activities keep their actual dates.
 3. Write front matter with `type`, full `id`, `status`, `planning_state`, `created`, and `priority`. Use `todo` for unstarted work; for a task consolidated from activities, use the supported progress and completion evidence under [Task completion and scope](#task-completion-and-scope). Use `planning_state: planned` by default; use `backlog` when the user asks to keep the task out of scheduled work. Do not infer Backlog from missing dates, low priority, a long period, or `todo` status. A Backlog task may omit either or both planned endpoints; preserve that choice and do not fill dates unless the user asks to plan it. For a planned task, include both planned endpoints and `planned_dates_status`. Use priority `7` when the user does not specify one; keep its allowed range at `1` to `9`. Use explicit dates when supplied, then use request and conversation context to estimate missing endpoints. If a missing endpoint has no reasonable estimate, use today in Asia/Tokyo when neither endpoint is known, the start when only a start is known, or the earlier of today and the end when only an end is known. Set `planned_dates_status: provisional` if either endpoint is estimated or assumed; use `confirmed` only for two explicit endpoints or when the user confirms the complete period. Do not ask for approval of a provisional period before completing a clear registration. Record the complete period and a brief reason for estimated values in the body/history, and mention provisional dates in the response. Never replace a supplied date or put a made-up date into an external deadline. An unbounded weekly recurring rule is exempt from the planned-period and status fields; use its `next_occurrence` and dated schedules.
 4. Add a Japanese title, content suited to the selected consolidation strategy when applicable, checklist, and history entry. Store supplied email or source links under a related section.
 5. Use one task for work the user explicitly asks to combine; put the components in a checklist.
 
 For an explicit task registration, create a task for the requested job, including concrete expense claims, applications, renewals, confirmations, payments, or other work. A TODO registration or an action clearly deferred for separate attention follows [todos.md](todos.md); actionability alone does not require a task. Record ideas without an actionable unit in the episode's activity.
+
+### Reserve a task ID outside Git
+
+Run the bundled [reserve-task-id.mjs](../assets/daybook/scripts/reserve-task-id.mjs) by absolute path with the selected daybook root and task creation date. Use the returned `id` for the filename and front matter.
+
+```sh
+node /absolute/skill/assets/daybook/scripts/reserve-task-id.mjs --repo-root /absolute/daybook --date YYYY-MM-DD
+```
+
+The CLI reserves the ID before the task is written, after the highest existing task or reservation for that ID month. It creates a separate file in `task-ids/` with exclusive creation so concurrent requests cannot claim the same number. Keep these files with the daybook and its backups. Retain the reservation after a task is deleted or a save fails. On a retry, first check whether the task already exists. Reuse the ID only if this operation has its own confirmed reservation and has never published the task. Otherwise reserve a fresh ID.
+
+Before allocating, preserve any previously used ID known from surviving records, links, or backups when its task and reservation are absent. Before a requested physical deletion of an older task that predates reservations, preserve that task's ID first. Use the same command with `--preserve task-YYYYMM-NNNNN` in place of `--date`. This also works if the reservation already exists. Older deletions that left no evidence cannot be recovered.
 
 For a task consolidated from activities, use the same metadata rules and ground its purpose, completion conditions, progress, and remaining work in the requested scope and recorded evidence. If the work has already started, reflect that progress using [Task updates during requested work](#task-updates-during-requested-work); do not present it as unstarted solely because the task file is new. Apply [Task completion and scope](#task-completion-and-scope) before marking it done.
 
@@ -113,7 +151,7 @@ When the user changes only one endpoint, preserve the other endpoint if known. I
 
 Before retaining supplied files or generated results, follow [attachments.md](attachments.md). Prefer the activity body for the work account and necessary findings. For separate materials, prefer a designated durable location outside daybook, including another Git repository. Choose a text attachment when keeping that artifact with daybook has a concrete benefit; an explicit request to keep a text artifact here is sufficient. A missing external destination alone does not require an attachment. Keep originals and valuable final or human-edited results distinguishable from temporary outputs. The reference defines how to record an undecided storage destination and the extremely rare binary exception; “attach this” alone does not authorize binary storage.
 
-Keep source copies and conversion intermediates in a verified Git-ignored `workplace/` path or outside the repository. After choosing an in-repository attachment, place only the final necessary text in `attachments/`. Follow [Store text attachments](attachments.md#store-text-attachments) in order: reuse an existing saved path; for new material prefer a clearly related existing task's task-id folder; otherwise use the activity's actual filename stem. Do not create a task solely for attachment storage. A new activity attachment uses the activity's month even when its related task was created in an earlier month. Later task consolidation links to the saved attachment without moving or copying it. The reference also defines task-only and schedule-only placement. Preserve a useful supplied filename when possible; if a same-name file exists, do not overwrite it. Add a relative link and verify the target. Keep one copy of shared text, create directories only when needed, and do not copy attachments into generated day-plans.
+Keep source copies and conversion intermediates in a verified Git-ignored `workplace/` path or outside the repository. After choosing an in-repository attachment, place only the final necessary text in the [selected attachments directory](#choose-the-attachments-and-topics-directories). Follow [Store text attachments](attachments.md#store-text-attachments) in order: reuse an existing saved path; for new material prefer a clearly related existing task's task-id folder; otherwise use the activity's actual filename stem. Do not create a task solely for attachment storage. A new activity attachment uses the activity's month even when its related task was created in an earlier month. Later task consolidation links to the saved attachment without moving or copying it. The reference also defines task-only and schedule-only placement. Preserve a useful supplied filename when possible; if a same-name file exists, do not overwrite it. Link to the saved file and verify the target. Keep one copy of shared text, create directories only when needed, and do not copy attachments into generated day-plans.
 
 ## Register a weekly recurring task
 
@@ -218,7 +256,9 @@ Use [url-task-lookup.md](url-task-lookup.md) only when the user explicitly asks 
 
 ## Git operations on the work repository
 
-When an explicit miku-scm Git request omits the target, use the repository for the work the conversation is continuing. For example, after editing another repository, `miku-scm git add commit` applies there, and an immediately following `miku-scm sync push` for the same work uses that repository too. Follow an explicit user target when given. For a new operation with no work context pointing elsewhere, use the open repository. If more than one candidate remains plausible, ask which repository the user means before running the operation.
+When an explicit miku-scm Git request omits the target, use the repository for the work the conversation is continuing. For example, after editing another repository, `miku-scm git add commit` applies there, and an immediately following `miku-scm sync push` for the same work uses that repository too. Follow an explicit user target when given.
+
+For a new operation with no established work, use the project root from [Resolve the project root and daybook root](#resolve-the-project-root-and-daybook-root). If the project root is unresolved and the launch root is the daybook root, use the daybook root. Use the daybook root for Git requests about files stored there. If the target remains unclear, ask which repository the user means before running the operation.
 
 Confirm the selected Git root and branch with read-only Git checks. Show the repository path and branch before invoking the runner, including before sync push preparation, which may commit. Pass the absolute Git root as `--repo` so the runner's launch directory does not select the target. If the chosen repository cannot be accessed, report that repository and the failure.
 
@@ -267,4 +307,4 @@ After generation, inspect the output for expected inclusions and exclusions, and
 
 ## Finish the operation
 
-After each edit group, run `git diff --check`, inspect changed paths, and verify affected links and front matter. Reuse the latest successful validation only for that same edit group; any later edit or failed check requires a fresh validation. Lists and explanations keep the records being inspected unchanged and follow common activity capture. An explicit instruction to use read-only access or change no files also suppresses activity writes. Briefly report material changes and the actual saved record path after successful writing; identify any unsaved progress if saving failed. Leave commit, push, PR, merge, Issue comments, and email actions to explicit requests and their appropriate workflows.
+After each edit group, inspect changed paths and verify affected links and front matter. Run `git diff --check` in each Git worktree where files were edited. Reuse the latest successful validation only for that same edit group; any later edit or failed check requires a fresh validation. Lists and explanations keep the records being inspected unchanged and follow common activity capture. An explicit instruction to use read-only access or change no files also suppresses activity writes. Briefly report material changes and the actual saved record path after successful writing; identify any unsaved progress if saving failed. Leave commit, push, PR, merge, Issue comments, and email actions to explicit requests and their appropriate workflows.

@@ -7,16 +7,21 @@ import { activityTitle, compareActivitySuffixes, previousActivityPath, readActiv
 import { parseFrontMatter } from "./day-plan.mjs";
 import { assertUniqueRecordPaths, listCanonicalRecordFiles, validateIsoDate } from "./record-paths.mjs";
 
-const usage = "Usage: node scripts/activity-history.mjs list [--date YYYY-MM-DD | [--from YYYY-MM-DD] [--to YYYY-MM-DD]] [--query TEXT] [--repo-root DIRECTORY]\n"
+const usage = "Usage: node scripts/activity-history.mjs list [--date YYYY-MM-DD | [--from YYYY-MM-DD] [--to YYYY-MM-DD]]\n"
+  + "           [--query TEXT] [--project-root DIRECTORY] [--repo-root DIRECTORY]\n"
   + "       node scripts/activity-history.mjs trace --path ACTIVITY.md [--depth N] [--repo-root DIRECTORY]";
 
 function loadActivity(repoRoot, relativePath) {
   const { content } = readActivity({ repoRoot, path: relativePath });
   const { frontMatter, body } = parseFrontMatter(content, relativePath);
-  return { record: { date: frontMatter.date, title: activityTitle(body, relativePath), path: relativePath }, body };
+  const record = { date: frontMatter.date, title: activityTitle(body, relativePath), path: relativePath };
+  if (typeof frontMatter.project_root === "string" && frontMatter.project_root.trim()) {
+    record.project_root = frontMatter.project_root;
+  }
+  return { record, body };
 }
 
-function listActivities(repoRoot, { date, from, to, query }) {
+function listActivities(repoRoot, { date, from, to, query, "project-root": projectDirectory }) {
   if (date !== undefined && (from !== undefined || to !== undefined)) {
     throw new Error("--date cannot be combined with --from or --to");
   }
@@ -24,6 +29,12 @@ function listActivities(repoRoot, { date, from, to, query }) {
     if (value !== undefined) validateIsoDate(value, "--" + flag);
   }
   if (from && to && from > to) throw new Error("--from must be on or before --to");
+  let projectRoot;
+  if (projectDirectory !== undefined) {
+    const resolvedProject = fs.realpathSync(projectDirectory);
+    if (!fs.statSync(resolvedProject).isDirectory()) throw new Error("--project-root must be a directory");
+    projectRoot = path.relative(repoRoot, resolvedProject).split(path.sep).join("/") || ".";
+  }
   const candidates = listCanonicalRecordFiles(repoRoot, ["activity"], {
     activityRange: { from: date ?? from, to: date ?? to },
   });
@@ -32,6 +43,7 @@ function listActivities(repoRoot, { date, from, to, query }) {
   const records = [];
   for (const { relativePath } of candidates) {
     const { record, body } = loadActivity(repoRoot, relativePath);
+    if (projectRoot !== undefined && record.project_root !== projectRoot) continue;
     if (!query || record.title.includes(query) || body.includes(query)) records.push(record);
   }
   return { records };
@@ -76,7 +88,7 @@ export function main(args = process.argv.slice(2)) {
     return 0;
   }
   if (operation !== "list" && operation !== "trace") throw new Error(usage);
-  const allowed = operation === "list" ? ["date", "from", "to", "query"] : ["path", "depth"];
+  const allowed = operation === "list" ? ["date", "from", "to", "query", "project-root"] : ["path", "depth"];
   const options = Object.fromEntries([...allowed, "repo-root"].map((key) => [key, { type: "string" }]));
   options.help = { type: "boolean" };
   const { values, tokens } = parseArgs({ args: flags, options, tokens: true });
